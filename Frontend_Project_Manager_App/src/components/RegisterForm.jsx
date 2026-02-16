@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { createUser } from "../Api/userApi";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function RegisterForm() {
   const [name, setName] = useState("");
@@ -110,7 +111,9 @@ export default function RegisterForm() {
 
         <p className="text-center text-sm mt-4">
           Déjà un compte ?{" "}
-          <a className="text-primary cursor-pointer">Se connecter</a>
+          <Link to="/" className="text-primary font-semibold hover:underline">
+            Se connecter
+          </Link>
         </p>
       </div>
     </div>
