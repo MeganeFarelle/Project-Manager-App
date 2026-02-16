@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "linux-musl", "windows"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
+
+  votes    vote[]
+  comments comment[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  project   project[]
+}
+
+model project {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  createdBy   user      @relation(fields: [createdById], references: [id])
+  createdById Int
+  votes       vote[]
+  comments    comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model vote {
+  id        Int     @id @default(autoincrement())
+  user      user    @relation(fields: [userId], references: [id])
+  userId    Int
+  project   project @relation(fields: [projectId], references: [id])
+  projectId Int
+}
+
+model comment {
+  id        Int     @id @default(autoincrement())
+  text      String
+  user      user    @relation(fields: [userId], references: [id])
+  userId    Int
+  project   project @relation(fields: [projectId], references: [id])
+  projectId Int
+
+  createdAt DateTime @default(now())
+}
+
+model colonne {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String
+  position    Int    @default(0)
+
+  created_At DateTime @default(now())
+  updated_At DateTime @updatedAt
+
+  cartes carte[]
+}
+
+model carte {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  position    Int      @default(0)
+  Colonne     colonne? @relation(fields: [colonneId], references: [id], onDelete: Cascade)
+  colonneId   Int?
+  start_date  DateTime
+  end_date    DateTime
+
+  created_At      DateTime          @default(now())
+  updated_At      DateTime          @updatedAt
+  carte_categorie carte_categorie[]
+}
+
+model categorie {
+  id              Int               @id @default(autoincrement())
+  nom             String            @unique
+  created_At      DateTime          @default(now())
+  updated_At      DateTime          @updatedAt
+  carte_categorie carte_categorie[]
+}
+
+model carte_categorie {
+  id          Int       @id @default(autoincrement())
+  carte       carte     @relation(fields: [carteId], references: [id])
+  carteId     Int
+  categorie   categorie @relation(fields: [categorieId], references: [id])
+  categorieId Int
+  created_At  DateTime  @default(now())
+  updated_At  DateTime  @updatedAt
+}

@@ -1,38 +1,60 @@
 services:
   backend:
-    build: ./backend
-    container_name: mern_backend
+    build:
+      context: ./Backend_Project_Manager_App
+      dockerfile: Dockerfile.dev
+    container_name: App_Backend
     ports:
       - "5000:5000"
     environment:
-      - NODE_ENV=development
-      - MONGO_URI=mongodb://mongo:27017/events_db
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/project_manag?schema=public"
     depends_on:
-      - mongo
+      - db
     volumes:
-      - ./backend:/app
+      - ./Backend_Project_Manager_App:/app:cached
       - /app/node_modules
-    command: npm run dev
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
 
-  mongo:
-    image: mongo:6
-    container_name: mern_mongo
+  db:
+    image: postgres:15
+    container_name: db_dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: project_manag
     ports:
-      - "27017:27017"
+      - "5433:5432"
     volumes:
-      - mongo_data:/data/db
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_dev
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    depends_on:
+      - db
 
   frontend:
-    build: ./frontend
-    container_name: mern_frontend
+    build:
+      context: ./Frontend_Project_Manager_App
+      dockerfile: Dockerfile.dev
+    container_name: App_Frontend
     ports:
-      - "3000:3000"
+      - "5173:5173"
     depends_on:
       - backend
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: npm start
+      - ./Frontend_Project_Manager_App:/app:cached
+    command: npm run dev
 
 volumes:
-  mongo_data:
+  db_data:
